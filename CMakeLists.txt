@@ -23,9 +23,22 @@ set(CMAKE_CXX_STANDARD 20)
 include_directories(include)
 include_directories(extern/glad/include)
 
-add_executable(particles src/main.cpp extern/glad/src/glad.c)
+add_executable(particles src/main.cpp extern/glad/src/glad.c
+        src/glutils.cpp
+        include/glutils.h
+        src/Window.cpp
+        include/Window.h
+        src/Shader.cpp
+        include/Shader.h
+        src/ShaderProgram.cpp
+        include/ShaderProgram.h)
 
 target_link_libraries(particles PRIVATE glm::glm)
 target_link_libraries(particles PRIVATE glfw)
 
-file(COPY shaders DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+add_custom_command(TARGET particles POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${CMAKE_CURRENT_SOURCE_DIR}/shaders"
+        "${CMAKE_CURRENT_BINARY_DIR}/shaders"
+)
+#file(COPY shaders DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
