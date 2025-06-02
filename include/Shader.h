@@ -10,6 +10,7 @@
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
 
 class Shader {
 public:
@@ -27,7 +28,8 @@ public:
         if (handle)
             glDeleteShader(handle);
     }
-
+    
+    
     friend class ShaderProgram;
 protected:
     GLenum shaderType;

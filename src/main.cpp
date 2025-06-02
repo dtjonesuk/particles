@@ -60,14 +60,30 @@ int main() {
         
         Shader vert(GL_VERTEX_SHADER, loadShaderSource("shaders/vert.glsl"));
         Shader frag(GL_FRAGMENT_SHADER, loadShaderSource("shaders/frag.glsl"));
-        ShaderProgram program(vert, frag); 
+        ShaderProgram program(vert, frag);
+        GLint u_Color = program.GetUniformLocation("u_Color");
         
         window.Init();
         glfwSwapInterval( 1 );
+        double previous = glfwGetTime();
         
         while (!window.ShouldClose()) {
+            // Handle windowing events            
             glfwPollEvents();
+            
+            // Calculate time
+            double time = glfwGetTime();
+            double delta = time - previous;
+            previous = time;
+
+            // Calculate fractional part of time
+            float fracTime = (float)time - std::trunc((float)time);
+            
+            // Set shaders and uniform values
             program.UseProgram();
+            glUniform3f(u_Color, 0.f, fracTime, 0.5f);
+            
+            // Draw the frame
             window.Update();
             window.SwapBuffers();
         }
