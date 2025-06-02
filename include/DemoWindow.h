@@ -15,8 +15,11 @@
 
 const glm::vec3 points[] = {
         {0.f,   0.5f,  0.f},
+        {1.0f,  0.f,   0.f},
         {0.5f,  -0.5f, 0.f},
-        {-0.5f, -0.5f, 0.f}
+        {0.f,   1.0f,  0.f},
+        {-0.5f, -0.5f, 0.f},
+        {0.f,   0.f,   1.0f}
 };
 
 class DemoWindow : public Window {
@@ -28,7 +31,8 @@ protected:
     double previous = 0;
     GLuint vbo = 0;
     GLuint vao = 0;
-    GLint u_Color = 0;
+//    GLint u_Color = 0;
+    GLint u_Percent = 0;
 
     void OnInit() override {
         // Create 1 buffer to store points
@@ -36,7 +40,7 @@ protected:
         // Bind buffer to current context
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
         // Set buffer data (send to gpu) - 3 pts * 3 co-ords each * sizeof(float).
-        glBufferData(GL_ARRAY_BUFFER, 3 * 3 * sizeof(points[0]), &points[0], GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, 6 * 3 * sizeof(float), &points[0], GL_STATIC_DRAW);
 
         // Create 1 vertex array object
         glGenVertexArrays(1, &vao);
@@ -44,29 +48,28 @@ protected:
         glBindVertexArray(vao);
         // Enable attrib #0
         glEnableVertexAttribArray(0);
+        glEnableVertexAttribArray(1);
         // Bind vertex buffer to vertex array object
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
         // Attrib #0: 3 floats, non-normalized, stride 0
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 2 * 3 * sizeof(float), nullptr);
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 2 * 3 * sizeof(float), (void *) (3 * sizeof(float)));
 
         // Compile shaders and create shader program
         Shader vert(GL_VERTEX_SHADER, loadShaderSource("shaders/vert.glsl"));
         Shader frag(GL_FRAGMENT_SHADER, loadShaderSource("shaders/frag.glsl"));
         program = ShaderProgram(vert, frag);
         program.UseProgram();
-        u_Color = program.GetUniformLocation("u_Color");
+        u_Percent = program.GetUniformLocation("u_Percent");
     }
 
-    void OnUpdate(TimeInfo timeInfo) override {
-        float time = (float) timeInfo.value;
-
+    void OnUpdate(TimeInfo time) override {
         // Calculate fractional part of time
-//        float fracTime = time - std::trunc(time);
-        float fracTime = std::abs(sin(time / 5 * 2 * PI));
-        
+        float percent = (cos((float)time.currentTime / 2 * 2 * PI) + 1.f) / 2.f;
+
         // Set shaders and uniform values
         program.UseProgram();
-        glUniform3f(u_Color, 0.f, fracTime, 0.5f);
+        glUniform1f(u_Percent, percent);
 
         int width, height;
         glfwGetFramebufferSize(window, &width, &height);

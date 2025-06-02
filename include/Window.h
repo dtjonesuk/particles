@@ -11,19 +11,19 @@
 
 struct TimeInfo {
     TimeInfo() {
-        value = glfwGetTime();
-        if (previous == 0.f) {
-            delta = 0.f;
+        currentTime = glfwGetTime();
+        if (previousTime == 0.f) {
+            deltaTime = 0.f;
         } else {
-            delta = value - previous;
+            deltaTime = currentTime - previousTime;
         }
-        previous = value;
+        previousTime = currentTime;
     }
 
-    double value;
-    double delta;
+    double currentTime;
+    double deltaTime;
 private:
-    static double previous;
+    static double previousTime;
 };
 
 class Window {
