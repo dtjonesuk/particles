@@ -4,7 +4,9 @@
 
 #ifndef PARTICLES_GLUTILS_H
 #define PARTICLES_GLUTILS_H
+#include <filesystem>
 
 void printOpenGLVersionInfo();
+std::string loadShaderSource(std::filesystem::path path); 
 
 #endif //PARTICLES_GLUTILS_H

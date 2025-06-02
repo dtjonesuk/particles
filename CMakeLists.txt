@@ -31,13 +31,17 @@ add_executable(particles src/main.cpp extern/glad/src/glad.c
         src/Shader.cpp
         include/Shader.h
         src/ShaderProgram.cpp
-        include/ShaderProgram.h)
+        include/ShaderProgram.h
+)
 
 target_link_libraries(particles PRIVATE glm::glm)
 target_link_libraries(particles PRIVATE glfw)
 
+set_property(SOURCE src/main.cpp APPEND PROPERTY OBJECT_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/shaders/frag.glsl)
+set_property(SOURCE src/main.cpp APPEND PROPERTY OBJECT_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/shaders/vert.glsl)
+
 add_custom_command(TARGET particles POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different
         "${CMAKE_CURRENT_SOURCE_DIR}/shaders"
         "${CMAKE_CURRENT_BINARY_DIR}/shaders"
 )

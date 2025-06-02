@@ -2,6 +2,7 @@
 // Created by David on 29/05/2025.
 //
 #include <iostream>
+#include <fstream>
 
 #include "glad/glad.h"
 #include "glutils.h"
@@ -19,4 +20,12 @@ void printOpenGLVersionInfo() {
     std::cout << "GL Version (string) : " << version << "\n";
     std::cout << "GL Version (integer) : " << major << "." << minor << "\n";
     std::cout << "GLSL Version : " << glslVersion << std::endl;
+}
+
+std::string loadShaderSource(std::filesystem::path path) {
+    std::ifstream file{path};
+    std::stringstream ss;
+    ss << file.rdbuf();
+    
+    return ss.str();
 }
