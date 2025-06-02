@@ -9,8 +9,8 @@
 
 #include "glutils.h"
 #include "Window.h"
-#include "ShaderProgram.h"
-#include "Shader.h"
+#include "DemoWindow.h"
+
 
 const int WIDTH = 1920;
 const int HEIGHT = 1080;
@@ -18,6 +18,8 @@ const int HEIGHT = 1080;
 void error_callback(int error, const char *description) {
     std::cerr << std::format("Error: {} {}\n", error, description);
 }
+
+
 
 
 int main() {
@@ -33,7 +35,7 @@ int main() {
     
     {
         // Create a GLFWwindow object that we can use for GLFW's functions
-        Window window(WIDTH, HEIGHT, "LearnOpenGL");
+        DemoWindow window;
         if (!window.Created()) {
             std::cerr << "Failed to create GLFW window" << std::endl;
             glfwTerminate();
@@ -58,33 +60,18 @@ int main() {
             std::cout << "SPIR-V extension supported!" << std::endl;
         }
         
-        Shader vert(GL_VERTEX_SHADER, loadShaderSource("shaders/vert.glsl"));
-        Shader frag(GL_FRAGMENT_SHADER, loadShaderSource("shaders/frag.glsl"));
-        ShaderProgram program(vert, frag);
-        GLint u_Color = program.GetUniformLocation("u_Color");
+
+        glfwSwapInterval( 1 );
         
         window.Init();
-        glfwSwapInterval( 1 );
-        double previous = glfwGetTime();
         
         while (!window.ShouldClose()) {
             // Handle windowing events            
             glfwPollEvents();
             
-            // Calculate time
-            double time = glfwGetTime();
-            double delta = time - previous;
-            previous = time;
-
-            // Calculate fractional part of time
-            float fracTime = (float)time - std::trunc((float)time);
-            
-            // Set shaders and uniform values
-            program.UseProgram();
-            glUniform3f(u_Color, 0.f, fracTime, 0.5f);
-            
             // Draw the frame
-            window.Update();
+            TimeInfo timeInfo;
+            window.Update(timeInfo);
             window.SwapBuffers();
         }
     }

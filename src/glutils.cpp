@@ -22,7 +22,7 @@ void printOpenGLVersionInfo() {
     std::cout << "GLSL Version : " << glslVersion << std::endl;
 }
 
-std::string loadShaderSource(std::filesystem::path path) {
+std::string loadShaderSource(const std::filesystem::path &path) {
     std::ifstream file{path};
     std::stringstream ss;
     ss << file.rdbuf();

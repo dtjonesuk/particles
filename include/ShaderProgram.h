@@ -10,6 +10,17 @@
 
 class ShaderProgram {
 public:
+    ShaderProgram() = default;
+    
+    ShaderProgram(ShaderProgram &&other)  noexcept {
+        handle = std::exchange(other.handle, 0);
+    }
+    
+    ShaderProgram& operator=(ShaderProgram &&other) noexcept {
+        handle = std::exchange(other.handle, 0);
+        return *this;
+    }
+    
     template<typename ...Shaders>
     explicit ShaderProgram(Shaders &...shaders) {
         handle = glCreateProgram();
@@ -31,11 +42,13 @@ public:
             
             // TODO: fail with shader link error
         }        
-    }
+    }   
 
     virtual ~ShaderProgram() {
-        if (handle)
+        if (handle) {
+            std::cout << "Deleting shader program " << handle << std::endl;
             glDeleteProgram(handle);
+        }
     }
     
     void UseProgram() const { glUseProgram(handle); }
@@ -54,7 +67,6 @@ public:
     }
 protected:
     GLuint handle{0};
-
 };
 
 

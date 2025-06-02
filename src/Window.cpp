@@ -5,3 +5,4 @@
 
 Window* Window::g_window;
 
+double TimeInfo::previous{0.f};

@@ -32,6 +32,8 @@ add_executable(particles src/main.cpp extern/glad/src/glad.c
         include/Shader.h
         src/ShaderProgram.cpp
         include/ShaderProgram.h
+        src/DemoWindow.cpp
+        include/DemoWindow.h
 )
 
 target_link_libraries(particles PRIVATE glm::glm)
