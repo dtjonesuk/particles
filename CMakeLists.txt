@@ -27,24 +27,26 @@ add_executable(particles src/main.cpp extern/glad/src/glad.c
         src/glutils.cpp
         include/glutils.h
         src/Window.cpp
-        include/Window.h
+        include/framework/Window.h
         src/Shader.cpp
-        include/Shader.h
+        include/framework/Shader.h
         src/ShaderProgram.cpp
-        include/ShaderProgram.h
+        include/framework/ShaderProgram.h
         src/DemoWindow.cpp
         include/DemoWindow.h
+        src/GLResource.cpp
+        include/framework/Resource.h
 )
 
 target_link_libraries(particles PRIVATE glm::glm)
 target_link_libraries(particles PRIVATE glfw)
 
-set_property(SOURCE src/main.cpp APPEND PROPERTY OBJECT_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/shaders/frag.glsl)
-set_property(SOURCE src/main.cpp APPEND PROPERTY OBJECT_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/shaders/vert.glsl)
+set_property(SOURCE src/main.cpp APPEND PROPERTY OBJECT_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/assets/shaders/2d.frag.glsl)
+set_property(SOURCE src/main.cpp APPEND PROPERTY OBJECT_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/assets/shaders/2d.vert.glsl)
 
 add_custom_command(TARGET particles POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different
-        "${CMAKE_CURRENT_SOURCE_DIR}/shaders"
-        "${CMAKE_CURRENT_BINARY_DIR}/shaders"
+        "${CMAKE_CURRENT_SOURCE_DIR}/assets"
+        "${CMAKE_CURRENT_BINARY_DIR}/assets"
 )
 #file(COPY shaders DESTINATION ${CMAKE_CURRENT_BINARY_DIR})

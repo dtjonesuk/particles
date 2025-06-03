@@ -8,8 +8,10 @@
 #include <numbers>
 
 #include "glutils.h"
-#include "Window.h"
-#include "ShaderProgram.h"
+#include "framework/Window.h"
+#include "framework/ShaderProgram.h"
+
+using namespace framework;
 
 #define PI std::numbers::pi_v<float>
 
@@ -31,10 +33,13 @@ protected:
     double previous = 0;
     GLuint vbo = 0;
     GLuint vao = 0;
-//    GLint u_Color = 0;
+    GLint u_Color = 0;
     GLint u_Percent = 0;
 
     void OnInit() override {
+        // Limit FPS
+        glfwSwapInterval( 1 );
+        
         // Create 1 buffer to store points
         glGenBuffers(1, &vbo);
         // Bind buffer to current context
@@ -56,11 +61,14 @@ protected:
         glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 2 * 3 * sizeof(float), (void *) (3 * sizeof(float)));
 
         // Compile shaders and create shader program
-        Shader vert(GL_VERTEX_SHADER, loadShaderSource("shaders/vert.glsl"));
-        Shader frag(GL_FRAGMENT_SHADER, loadShaderSource("shaders/frag.glsl"));
+        Shader vert(GL_VERTEX_SHADER, loadShaderSource("assets/shaders/2d.vert.glsl"));
+        Shader frag(GL_FRAGMENT_SHADER, loadShaderSource("assets/shaders/2d.frag.glsl"));
+        
         program = ShaderProgram(vert, frag);
         program.UseProgram();
         u_Percent = program.GetUniformLocation("u_Percent");
+        u_Color = program.GetUniformLocation("u_Color");
+        
     }
 
     void OnUpdate(TimeInfo time) override {
@@ -78,7 +86,15 @@ protected:
         glClearColor(0.1f, 0.1f, 0.1f, 1.f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glBindVertexArray(vao);
+        glPointSize(5.0f);
+        glLineWidth(5.0f);
         glDrawArrays(GL_TRIANGLES, 0, 3);
+    }
+    
+    void OnClose() override {
+        std::cout << "Close window" << std::endl;
+        glDeleteVertexArrays(1, &vao);
+        glDeleteBuffers(1, &vbo);
     }
 };
 

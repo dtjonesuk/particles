@@ -7,6 +7,7 @@
 #include <filesystem>
 
 void printOpenGLVersionInfo();
-std::string loadShaderSource(const std::filesystem::path &path); 
+std::string loadShaderSource(const std::filesystem::path &path);
+void enableGLDebugging();
 
 #endif //PARTICLES_GLUTILS_H
