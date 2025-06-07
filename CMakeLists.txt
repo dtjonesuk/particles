@@ -26,16 +26,17 @@ include_directories(extern/glad/include)
 add_executable(particles src/main.cpp extern/glad/src/glad.c
         src/glutils.cpp
         include/glutils.h
-        src/Window.cpp
+        src/framework/Window.cpp
         include/framework/Window.h
-        src/Shader.cpp
+        src/framework/Shader.cpp
         include/framework/Shader.h
-        src/ShaderProgram.cpp
+        src/framework/ShaderProgram.cpp
         include/framework/ShaderProgram.h
         src/DemoWindow.cpp
         include/DemoWindow.h
-        src/GLResource.cpp
+        src/framework/GLResource.cpp
         include/framework/Resource.h
+        include/framework/Mesh.h
 )
 
 target_link_libraries(particles PRIVATE glm::glm)
