@@ -22,21 +22,20 @@ set(CMAKE_CXX_STANDARD 20)
 
 include_directories(include)
 include_directories(extern/glad/include)
+include_directories(extern/stb)
 
 add_executable(particles src/main.cpp extern/glad/src/glad.c
-        src/glutils.cpp
-        include/glutils.h
-        src/framework/Window.cpp
         include/framework/Window.h
-        src/framework/Shader.cpp
         include/framework/Shader.h
-        src/framework/ShaderProgram.cpp
         include/framework/ShaderProgram.h
-        src/DemoWindow.cpp
-        include/DemoWindow.h
-        src/framework/GLResource.cpp
-        include/framework/Resource.h
+        include/framework/GlResource.h
         include/framework/Mesh.h
+        include/framework/Texture.h
+        src/framework/Window.cpp
+        include/glutils.h
+        include/DemoWindow.h
+        src/glutils.cpp
+        src/DemoWindow.cpp
 )
 
 target_link_libraries(particles PRIVATE glm::glm)

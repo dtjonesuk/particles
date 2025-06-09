@@ -7,6 +7,8 @@
 
 #include <numbers>
 
+#include <stb_image.h>
+
 #include <glad/glad.h>
 
 #include <glm/glm.hpp>
@@ -25,15 +27,16 @@ using namespace framework;
 struct Vertex {
     glm::vec3 pos;
     glm::vec3 color;
+    glm::vec2 uv;
 };
 
 const std::vector<Vertex> points = {
         {{0.f,   sinf(glm::radians(60.f)) - 0.5f, 0.f},
-                {1.0f, 0.f,  0.f}},
+                {1.0f, 0.f,  0.f},  {0.5f,  1.5f}},
         {{0.5f,  -0.5f,                           0.f},
-                {0.f,  1.0f, 0.f}},
+                {0.f,  1.0f, 0.f},  {-0.5f, 0.f}},
         {{-0.5f, -0.5f,                           0.f},
-                {0.f,  0.f,  1.0f}}
+                {0.f,  0.f,  1.0f}, {1.5f,  0.f}}
 };
 
 class DemoWindow : public Window {
@@ -42,20 +45,26 @@ public:
 
 protected:
     Mesh<Vertex> mesh;
+    Texture texture;
     ShaderProgram program;
     double previous = 0;
     GLint u_Color{0};
     GLint u_Percent{0};
     GLint u_Transform{0};
+    GLint u_Texture{0};
 
     void OnInit() override {
         // Limit FPS
         glfwSwapInterval(1);
 
+        texture.CreateFromFile("assets/textures/opengl-logo.png");
+
         // Geometry
-        mesh.CreateFromPoints(points);
+        mesh = Mesh<Vertex>::CreateFromPoints(points);
         mesh.AddAttrib(3, GL_FLOAT, offsetof(Vertex, pos));
         mesh.AddAttrib(3, GL_FLOAT, offsetof(Vertex, color));
+        mesh.AddAttrib(2, GL_FLOAT, offsetof(Vertex, uv));
+        mesh.SetTexture(std::move(texture));
 
         // Compile shaders and create shader program
         Shader vert(GL_VERTEX_SHADER, loadShaderSource("assets/shaders/2d.vert.glsl"));
@@ -63,11 +72,6 @@ protected:
 
         program = ShaderProgram(vert, frag);
         program.UseProgram();
-
-        // Save uniform locations for later
-        u_Percent = program.GetUniformLocation("u_Percent");
-        u_Color = program.GetUniformLocation("u_Color");
-        u_Transform = program.GetUniformLocation("u_Transform");
     }
 
     void OnUpdate(TimeInfo time) override {
@@ -76,12 +80,13 @@ protected:
 
         // Set shaders and uniform values
         program.UseProgram();
-        glUniform1f(u_Percent, percent);
+        program.SetUniform<float>("u_Percent", percent);
 
         // Model transform
         auto model = glm::identity<glm::mat4>();
         model = glm::rotate(model, (float) time.currentTime * PI * 2, glm::vec3{0.f, 0.f, 1.f});
         model = glm::scale(model, glm::vec3{percent * 2, percent * 2, percent * 2});
+//        model = glm::scale(model, glm::vec3{2, 2, 2});
 
         // View transform
         int width, height;
@@ -98,14 +103,14 @@ protected:
         // Model-View-Projection transform
         glm::mat4 mvp = proj * view * model;
 
-        glUniformMatrix4fv(u_Transform, 1, GL_FALSE, glm::value_ptr(mvp));
-
+        program.SetUniform("u_Transform", mvp);
+        
         // Clear screen
         glClearColor(0.1f, 0.1f, 0.1f, 1.f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // Draw geometry
-        mesh.Draw();
+        mesh.Render();
     }
 
     void OnClose() override {

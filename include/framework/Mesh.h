@@ -10,70 +10,71 @@
 #include <glad/glad.h>
 #include <glm/glm.hpp>
 
-#include "framework/Resource.h"
+#include "GlResource.h"
+#include "Texture.h"
 
 namespace framework {
     template<typename TVertex>
     class Mesh {
     public:
         Mesh() = default;
+        Mesh(Mesh&& other) = default;
+        Mesh& operator=(Mesh&& other) = default;
         
-        ~Mesh() {
-            if (vbo)
-                glDeleteBuffers(1, &vbo);
-            if (ibo)
-                glDeleteBuffers(1, &ibo);
-            if (vao)
-                glDeleteBuffers(1, &vao);
+        static Mesh CreateFromPoints(const std::vector<TVertex> &points) {
+            Mesh mesh;
+            mesh.vertices = points;    
+            mesh.CreateVertexBuffer();
+            mesh.CreateVertexArray();
+            return mesh;
         }
         
-        void CreateFromPoints(const std::vector<TVertex> &points) {
-            vertices = points;    
-            CreateVertexBuffer();
-            CreateVertexArray();
-        }
-        
-        void AddAttrib(GLint count, GLenum type = GL_FLOAT, std::ptrdiff_t offset = 0) {
+        void AddAttrib(GLint count, GLenum type, std::ptrdiff_t offset) {
             glEnableVertexAttribArray(attribCount);
             glVertexAttribPointer(attribCount++, count, type, GL_FALSE, sizeof(TVertex), (void *)offset);
         }
         
-        void Bind() {
-            glBindVertexArray(vao);
-        }
-        
-        void Draw() {
-            Bind();
+        void Render() {
+            vao.Bind();
+            if (texture) {
+                texture.Bind();
+            }
             glDrawArrays(drawMode, 0, vertices.size());
         }
         
         const std::vector<TVertex>& Vertices() const { return vertices; }
         
+        void SetTexture(Texture&& tex) {
+            texture = std::move(tex);
+        }
+        
     protected:
         std::vector<TVertex> vertices;
-        GLuint vbo{0};
-        GLuint ibo{0};
-        GLuint vao{0};
+        GlBuffer vbo;
+        GlBuffer ibo;
+        GlVertexArray vao;
+        Texture texture;
         GLenum drawMode = GL_TRIANGLES;
         size_t attribCount{0};
 
 
         void CreateVertexBuffer(GLenum mode = GL_STATIC_DRAW) {
-            // Create 1 buffer to store points
-            glGenBuffers(1, &vbo);
+            // Create buffer to store points
+            vbo.Generate();
             // Bind buffer to current context
-            glBindBuffer(GL_ARRAY_BUFFER, vbo);
+            vbo.Bind(GL_ARRAY_BUFFER);
             // Set buffer data (send to gpu) - 3 pts * 3 co-ords each * sizeof(float).
             glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(TVertex), &vertices[0], mode);
         }
 
         void CreateVertexArray() {
-            // Create 1 vertex array object
-            glGenVertexArrays(1, &vao);
+            GLuint handle;
+            // Create vertex array object
+            vao.Generate();
             // Bind vertex array to current context
-            glBindVertexArray(vao);
+            vao.Bind();
             // Bind vertex buffer to vertex array object
-            glBindBuffer(GL_ARRAY_BUFFER, vbo);
+            vbo.Bind(GL_ARRAY_BUFFER);
         }
     };
 }
