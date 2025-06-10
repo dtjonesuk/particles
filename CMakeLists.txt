@@ -23,18 +23,26 @@ set(CMAKE_CXX_STANDARD 20)
 include_directories(include)
 include_directories(extern/glad/include)
 include_directories(extern/stb)
+include_directories(extern/imgui)
 
 add_executable(particles src/main.cpp extern/glad/src/glad.c
+        extern/imgui/imgui.cpp
+        extern/imgui/imgui_draw.cpp
+        extern/imgui/imgui_tables.cpp
+        extern/imgui/imgui_widgets.cpp
+        extern/imgui/imgui_demo.cpp
+        extern/imgui/backends/imgui_impl_glfw.cpp
+        extern/imgui/backends/imgui_impl_opengl3.cpp
         include/framework/Window.h
         include/framework/Shader.h
         include/framework/ShaderProgram.h
         include/framework/GlResource.h
         include/framework/Mesh.h
         include/framework/Texture.h
-        src/framework/Window.cpp
         include/glutils.h
         include/DemoWindow.h
         src/glutils.cpp
+        src/framework/Window.cpp
         src/DemoWindow.cpp
 )
 

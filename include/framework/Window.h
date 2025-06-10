@@ -11,6 +11,10 @@
 #include "GLFW/glfw3.h"
 #include "glm/glm.hpp"
 
+#include <imgui.h>
+#include <backends/imgui_impl_glfw.h>
+#include <backends/imgui_impl_opengl3.h>
+
 
 namespace framework {
     struct TimeInfo {
@@ -26,7 +30,7 @@ namespace framework {
 
         double currentTime;
         double deltaTime;
-        
+
     private:
         static double previousTime;
     };
@@ -54,10 +58,29 @@ namespace framework {
         bool ShouldClose() { return glfwWindowShouldClose(window); }
 
         // One time setup
-        void Init() { OnInit(); }
+        void Init() {
+            InitGui();
+            OnInit();
+        }
+
+        void UpdateGui(const TimeInfo &timeInfo) {
+            // Start the Dear ImGui frame
+            ImGui_ImplOpenGL3_NewFrame();
+            ImGui_ImplGlfw_NewFrame();
+            ImGui::NewFrame();
+
+            OnGui();
+
+            // Rendering
+            ImGui::Render();
+        }
 
         // Called once per frame
-        void Update(TimeInfo timeInfo) { OnUpdate(timeInfo); }
+        void Update(TimeInfo timeInfo) {
+            UpdateGui(timeInfo);
+            OnUpdate(timeInfo);
+            ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        }
 
         void SwapBuffers() { glfwSwapBuffers(window); }
 
@@ -66,17 +89,48 @@ namespace framework {
             OnClose();
             window = nullptr;
         }
-        
+
         virtual ~Window() {
             if (window) {
                 glfwDestroyWindow(window);
             }
+            // Cleanup
+            ImGui_ImplOpenGL3_Shutdown();
+            ImGui_ImplGlfw_Shutdown();
+            ImGui::DestroyContext();
         }
 
     protected:
+        void InitGui() {
+            const char *glsl_version = "#version 330";
+            // Setup Dear ImGui context
+            IMGUI_CHECKVERSION();
+            ImGui::CreateContext();
+            ImGuiIO &io = ImGui::GetIO();
+            (void) io;
+            io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+            io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+
+            // Setup fonts
+            ImFontConfig *fontConfig = new ImFontConfig();
+            fontConfig->FontData = nullptr;
+            fontConfig->SizePixels = 24.0f;
+            io.Fonts->AddFontDefault(fontConfig);
+            
+            // Setup Dear ImGui style
+            ImGui::StyleColorsDark();
+            //ImGui::StyleColorsLight();
+
+            // Setup Platform/Renderer backends
+            ImGui_ImplGlfw_InitForOpenGL(window, true);
+            ImGui_ImplOpenGL3_Init(glsl_version);
+        }
+
+        virtual void OnGui() = 0;
+
         virtual void OnInit() = 0;
 
-        virtual void OnUpdate(TimeInfo timeInfo) = 0;
+        virtual void OnUpdate(const TimeInfo &timeInfo) = 0;
 
         virtual void OnKeyboardEvent(int key, int scancode, int action, int mods) {
             if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
@@ -88,7 +142,7 @@ namespace framework {
         virtual void OnClose() {}
 
         GLFWwindow *window{nullptr};
-        
+
     private:
         void KeyboardHandler(int key, int scancode, int action, int mods) {
             OnKeyboardEvent(key, scancode, action, mods);
@@ -104,13 +158,19 @@ namespace framework {
         static Window *g_window;
 
         static void keyboard_handler(GLFWwindow *window, int key, int scancode, int action, int mods) {
-            if (g_window && g_window->window == window)
-                g_window->KeyboardHandler(key, scancode, action, mods);
+            if (g_window && g_window->window == window) {
+                ImGuiIO &io = ImGui::GetIO();
+                if (!io.WantCaptureKeyboard)
+                    g_window->KeyboardHandler(key, scancode, action, mods);
+            }
         }
 
         static void mousebutton_handler(GLFWwindow *window, int button, int action, int mods) {
-            if (g_window && g_window->window == window)
-                g_window->MouseButtonHandler(button, action, mods);
+            if (g_window && g_window->window == window) {
+                ImGuiIO &io = ImGui::GetIO();
+                if (!io.WantCaptureMouse)
+                    g_window->MouseButtonHandler(button, action, mods);
+            }
         }
 
         static void close_handler(GLFWwindow *window) {
