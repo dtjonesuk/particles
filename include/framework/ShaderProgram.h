@@ -30,25 +30,26 @@ namespace framework {
 
         template<typename ...Shaders>
         explicit ShaderProgram(Shaders &... shaders) {
-            GLuint handle = glCreateProgram();
-            program.SetHandle(handle);
+//            GLuint handle = glCreateProgram();
+//            program.SetHandle(handle);
+            program.Generate();
 
-            (glAttachShader(handle, shaders.Handle()), ...);
+            (glAttachShader(program.Handle(), shaders.Handle()), ...);
 
-            glLinkProgram(handle);
+            glLinkProgram(program.Handle());
 
             // Check for linking errors:
             GLint params;
-            glGetProgramiv(handle, GL_LINK_STATUS, &params);
+            glGetProgramiv(program.Handle(), GL_LINK_STATUS, &params);
 
             // Print the linking log:
             if (GL_TRUE != params) {
                 std::string msg("Program linking failure: ");
 
                 GLint infoLogLength;
-                glGetProgramiv(handle, GL_INFO_LOG_LENGTH, &infoLogLength);
+                glGetProgramiv(program.Handle(), GL_INFO_LOG_LENGTH, &infoLogLength);
                 char *strInfoLog = new char[infoLogLength + 1];
-                glGetProgramInfoLog(handle, infoLogLength, nullptr, strInfoLog);
+                glGetProgramInfoLog(program.Handle(), infoLogLength, nullptr, strInfoLog);
                 msg += strInfoLog;
                 delete[] strInfoLog;
 
@@ -62,7 +63,7 @@ namespace framework {
             if constexpr (std::is_same_v<T, glm::vec2>) {
                 glUniform2fv(loc, 1, &param[0]);
             } else if constexpr (std::is_same_v<T, glm::vec3>) {
-                glUniform2fv(loc, 1, &param[0]);
+                glUniform3fv(loc, 1, &param[0]);
             } else if constexpr (std::is_same_v<T, glm::mat3>) {
                 glUniformMatrix3fv(loc, 1, GL_FALSE, glm::value_ptr(param));
             } else if constexpr (std::is_same_v<T, glm::mat4>) {

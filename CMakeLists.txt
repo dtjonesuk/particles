@@ -51,6 +51,8 @@ target_link_libraries(particles PRIVATE glfw)
 
 set_property(SOURCE src/main.cpp APPEND PROPERTY OBJECT_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/assets/shaders/2d.frag.glsl)
 set_property(SOURCE src/main.cpp APPEND PROPERTY OBJECT_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/assets/shaders/2d.vert.glsl)
+set_property(SOURCE src/main.cpp APPEND PROPERTY OBJECT_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/assets/shaders/3d.frag.glsl)
+set_property(SOURCE src/main.cpp APPEND PROPERTY OBJECT_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/assets/shaders/3d.vert.glsl)
 
 add_custom_command(TARGET particles POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different

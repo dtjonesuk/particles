@@ -39,6 +39,7 @@ namespace framework {
             if (texture) {
                 texture.Bind();
             }
+            glPointSize(5.0f);
             glDrawArrays(drawMode, 0, vertices.size());
         }
         

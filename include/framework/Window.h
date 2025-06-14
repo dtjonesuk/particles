@@ -15,6 +15,13 @@
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
 
+#ifdef WIN32
+// Font support
+#include <shlobj_core.h>
+#include <filesystem>
+
+#endif
+
 
 namespace framework {
     struct TimeInfo {
@@ -112,11 +119,21 @@ namespace framework {
             io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 
             // Setup fonts
+#ifdef WIN32
+            char fontsFolder[MAX_PATH];
+
+            SHGetSpecialFolderPathA(NULL, fontsFolder, CSIDL_FONTS, FALSE);
+            std::filesystem::path fontPath(fontsFolder);
+            fontPath /=  "segoeui.ttf"; 
+            io.Fonts->AddFontFromFileTTF(fontPath.string().c_str() , 36.0f);
+#else
             ImFontConfig *fontConfig = new ImFontConfig();
             fontConfig->FontData = nullptr;
             fontConfig->SizePixels = 24.0f;
             io.Fonts->AddFontDefault(fontConfig);
-            
+#endif
+
+
             // Setup Dear ImGui style
             ImGui::StyleColorsDark();
             //ImGui::StyleColorsLight();
