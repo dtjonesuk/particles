@@ -25,6 +25,13 @@ include_directories(extern/glad/include)
 include_directories(extern/stb)
 include_directories(extern/imgui)
 
+file(GLOB SHADER_SRCS 
+        RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} 
+        CONFIGURE_DEPENDS
+        ${CMAKE_CURRENT_SOURCE_DIR}/assets/shaders/*.glsl
+)
+message(${SHADER_SRCS})
+
 add_executable(particles src/main.cpp extern/glad/src/glad.c
         extern/imgui/imgui.cpp
         extern/imgui/imgui_draw.cpp
@@ -39,24 +46,35 @@ add_executable(particles src/main.cpp extern/glad/src/glad.c
         include/framework/GlResource.h
         include/framework/Mesh.h
         include/framework/Texture.h
+        include/framework/Camera.h
+        include/framework/Wireframe.h
+        include/framework/StaticMesh.h
         include/glutils.h
         include/DemoWindow.h
         src/glutils.cpp
         src/framework/Window.cpp
         src/DemoWindow.cpp
+
+        
+        ${SHADER_SRCS}
+        include/framework/Geometry.h
+        include/framework/Transform.h
+        include/framework/Light.h
+        include/framework/Material.h
+        include/framework/Buffer.h
+        include/framework/MatrixBuffer.h
 )
 
 target_link_libraries(particles PRIVATE glm::glm)
 target_link_libraries(particles PRIVATE glfw)
 
-set_property(SOURCE src/main.cpp APPEND PROPERTY OBJECT_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/assets/shaders/2d.frag.glsl)
-set_property(SOURCE src/main.cpp APPEND PROPERTY OBJECT_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/assets/shaders/2d.vert.glsl)
-set_property(SOURCE src/main.cpp APPEND PROPERTY OBJECT_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/assets/shaders/3d.frag.glsl)
-set_property(SOURCE src/main.cpp APPEND PROPERTY OBJECT_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/assets/shaders/3d.vert.glsl)
+
+foreach(SHADER ${SHADER_SRCS})
+set_property(SOURCE src/main.cpp APPEND PROPERTY OBJECT_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/${SHADER})
+endforeach()
 
 add_custom_command(TARGET particles POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different
         "${CMAKE_CURRENT_SOURCE_DIR}/assets"
         "${CMAKE_CURRENT_BINARY_DIR}/assets"
 )
-#file(COPY shaders DESTINATION ${CMAKE_CURRENT_BINARY_DIR})

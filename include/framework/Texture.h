@@ -38,9 +38,9 @@ namespace framework {
             texture.Unbind();
         }
 
-        void CreateFromFile(const std::filesystem::path &path) {
-            texture.Reset();
-
+        static Texture CreateFromFile(const std::filesystem::path &path) {
+            Texture tex;
+            
             // load image from file
             int width, height, nChannels;
             stbi_set_flip_vertically_on_load(true);
@@ -50,12 +50,12 @@ namespace framework {
 
             // create texture object
 //            GLuint handle;
-            texture.Generate();
+            tex.texture.Generate();
 //            glGenTextures(1, &handle);
 //            texture.SetHandle(handle);
 
             // bind texture to context
-            texture.Bind();
+            tex.texture.Bind();
             //glBindTexture(GL_TEXTURE_2D, handle);
 
             // set the texture wrapping/filtering options (on the currently bound texture object)
@@ -76,6 +76,8 @@ namespace framework {
 
             // free stbi image data
             stbi_image_free(data);
+            
+            return tex;
         }
     protected:
         GlTexture2d texture;

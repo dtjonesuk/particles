@@ -28,19 +28,27 @@ namespace framework {
             static_assert(false, "Resource generate method not implemented!");
             throw std::runtime_error("Resource generate method not implemented!");
         }
+
         static void Bind(THandle handle) {
             static_assert(false, "Resource bind method not implemented!");
             throw std::runtime_error("Resource bind method not implemented!");
         }
+
         static void Bind(GLuint target, THandle handle) {
-            static_assert(false, "Resource bindmethod not implemented!");
+            static_assert(false, "Resource bind method not implemented!");
             throw std::runtime_error("Resource bind method not implemented!");
         }
+
+        static void Unbind(GLuint target, THandle handle) {
+            static_assert(false, "Resource unbind method not implemented!");
+            throw std::runtime_error("Resource unbind method not implemented!");
+        }
+
         static void Unbind(THandle handle) {
             static_assert(false, "Resource unbind method not implemented!");
             throw std::runtime_error("Resource unbind method not implemented!");
         }
-        
+
         static void Delete(THandle handle) {
             static_assert(false, "Resource delete method not implemented!");
             throw std::runtime_error("Resource delete method not implemented!");
@@ -55,12 +63,13 @@ namespace framework {
 
         // Default constructor
         GlResource() : _handle(0) {}
-        
+
         // Converting constructor
         GlResource(THandle handle) : _handle(handle) {}
-        
+
         /* Copy constructor / assignment */
         GlResource(const GlResource &other) = delete;
+
         GlResource &operator=(const GlResource &other) = delete;
 
         /* Move constructor /assignment */
@@ -84,7 +93,7 @@ namespace framework {
         virtual ~GlResource() { if (HasHandle()) FreeHandle(); };
 
         THandle Handle() const { return _handle; }
-        
+
         void SetHandle(THandle handle) {
             if (HasHandle())
                 FreeHandle();
@@ -96,16 +105,19 @@ namespace framework {
         bool HasHandle() const { return _handle != 0; }
 
         operator bool() const { return HasHandle(); }
-        
+
         void Generate() {
             Reset();
             HandleOps::Generate(&_handle);
         }
+
         void Bind() const { HandleOps::Bind(Handle()); }
-        
+
         void Bind(GLuint target) const { HandleOps::Bind(target, Handle()); }
-        
-        void Unbind() const { HandleOps:: Unbind(Handle()); }
+
+        void Unbind() const { HandleOps::Unbind(Handle()); }
+
+        void Unbind(GLuint target) const { HandleOps::Unbind(target, Handle()); }
 
     protected:
         THandle _handle;
@@ -121,7 +133,7 @@ namespace framework {
     typedef GlResource<GlResourceType::Texture2D> GlTexture2d;
     typedef GlResource<GlResourceType::Buffer> GlBuffer;
     typedef GlResource<GlResourceType::VertexArray> GlVertexArray;
-    
+
     /*** Shader ***/
     template<>
     inline void GlResourceOps<GlResourceType::Shader>::Delete(THandle handle) {
@@ -133,7 +145,7 @@ namespace framework {
     inline void GlResourceOps<GlResourceType::ShaderProgram>::Generate(THandle *handle) {
         *handle = glCreateProgram();
     }
-    
+
     template<>
     inline void GlResourceOps<GlResourceType::ShaderProgram>::Bind(THandle handle) {
         glUseProgram(handle);
@@ -154,7 +166,7 @@ namespace framework {
     inline void GlResourceOps<GlResourceType::Texture2D>::Generate(THandle *handle) {
         glGenTextures(1, handle);
     }
-    
+
     template<>
     inline void GlResourceOps<GlResourceType::Texture2D>::Bind(THandle handle) {
         glBindTexture(GL_TEXTURE_2D, handle);
@@ -175,6 +187,7 @@ namespace framework {
     inline void GlResourceOps<GlResourceType::VertexArray>::Generate(THandle *handle) {
         glGenVertexArrays(1, handle);
     }
+
     template<>
     inline void GlResourceOps<GlResourceType::VertexArray>::Bind(THandle handle) {
         glBindVertexArray(handle);
@@ -195,10 +208,17 @@ namespace framework {
     inline void GlResourceOps<GlResourceType::Buffer>::Generate(THandle *handle) {
         glGenBuffers(1, handle);
     }
+
     template<>
     inline void GlResourceOps<GlResourceType::Buffer>::Bind(GLuint target, THandle handle) {
         glBindBuffer(target, handle);
     }
+
+    template<>
+    inline void GlResourceOps<GlResourceType::Buffer>::Unbind(GLuint target, THandle handle) {
+        glBindBuffer(target, 0);
+    }
+
     template<>
     inline void GlResourceOps<GlResourceType::Buffer>::Delete(THandle handle) {
         glDeleteBuffers(1, &handle);

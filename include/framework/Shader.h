@@ -58,7 +58,7 @@ namespace framework {
                 std::string msg("Shader Compilation Error: ");
                 
                 GLint infoLogLength;
-                glGetProgramiv(shader.Handle(), GL_INFO_LOG_LENGTH, &infoLogLength);
+                glGetShaderiv(shader.Handle(), GL_INFO_LOG_LENGTH, &infoLogLength);
                 char *strInfoLog = new char[infoLogLength + 1];
                 glGetShaderInfoLog(shader.Handle(), infoLogLength,nullptr, strInfoLog);
                 msg += strInfoLog;

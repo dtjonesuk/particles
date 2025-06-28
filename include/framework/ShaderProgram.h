@@ -28,14 +28,17 @@ namespace framework {
             return *this;
         }
 
-        template<typename ...Shaders>
-        explicit ShaderProgram(Shaders &... shaders) {
-//            GLuint handle = glCreateProgram();
-//            program.SetHandle(handle);
+        explicit ShaderProgram(std::string_view vertexSource, std::string_view fragmentSource) {
+            Shader vs(GL_VERTEX_SHADER, vertexSource);
+            Shader fs(GL_FRAGMENT_SHADER, fragmentSource);
+            
             program.Generate();
 
-            (glAttachShader(program.Handle(), shaders.Handle()), ...);
-
+            // Attach shaders
+            glAttachShader(program.Handle(), vs.Handle());
+            glAttachShader(program.Handle(), fs.Handle());
+            
+            // Link program
             glLinkProgram(program.Handle());
 
             // Check for linking errors:
@@ -81,15 +84,33 @@ namespace framework {
             }
         }
 
-        void UseProgram() const { program.Bind(); }
+        void Use() const { program.Bind(); }
 
-        void UnuseProgram() const { program.Unbind(); }
+        void Unuse() const { program.Unbind(); }
 
         [[nodiscard]] GLint GetUniformLocation(std::string_view name) const {
             GLint loc = glGetUniformLocation(program.Handle(), name.data());
             return loc;
         }
+        
+        [[nodiscard]] GLuint GetUniformBlockIndex(std::string_view name) const {
+            GLuint loc = glGetUniformBlockIndex(program.Handle(), name.data());
+            return loc;
+        }
+        
+        [[nodiscard]] GLint GetUniformBlockSize(std::string_view name) const {
+            GLint size;
+            glGetActiveUniformBlockiv(Handle(), GetUniformBlockIndex(name),
+                                      GL_UNIFORM_BLOCK_DATA_SIZE, &size);
+            return size;
+        }
 
+        void UniformBlockBinding(std::string_view name, GLuint bindingPoint) {
+            GLuint index = GetUniformBlockIndex(name);
+            glUniformBlockBinding(program.Handle(), index, bindingPoint);
+        }
+
+        GLuint Handle() const { return program.Handle(); }
     protected:
         GlShaderProgram program;
     };
