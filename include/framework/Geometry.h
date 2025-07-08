@@ -6,21 +6,25 @@
 #define PARTICLES_GEOMETRY_H
 
 #include "Transform.h"
+#include "Material.h"
 
-class Geometry {
-public:
-    Geometry() = default;
-    
-    Transform& GetTransform() { return _transform; }
-    const Transform& GetTransform() const { return _transform; }
-    void SetTransform(const Transform &transform) {_transform = transform; }
-    
-    void Render() {
-        RenderGeometry();
-    }
-    
-protected:
-    Transform _transform;
-    virtual void RenderGeometry() = 0;
-};
+namespace framework {
+    class Geometry {
+    public:
+        Geometry() = default;
+
+        const std::shared_ptr<Material> GetMaterial() const { return material; }
+
+        void SetMaterial(std::shared_ptr<Material> newMaterial) { material = newMaterial; }
+
+        void Render() {
+            RenderGeometry();
+        }
+
+    protected:
+        std::shared_ptr<Material> material;
+
+        virtual void RenderGeometry() = 0;
+    };
+}
 #endif //PARTICLES_GEOMETRY_H

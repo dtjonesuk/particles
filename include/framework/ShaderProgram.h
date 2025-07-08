@@ -28,9 +28,9 @@ namespace framework {
             return *this;
         }
 
-        explicit ShaderProgram(std::string_view vertexSource, std::string_view fragmentSource) {
-            Shader vs(GL_VERTEX_SHADER, vertexSource);
-            Shader fs(GL_FRAGMENT_SHADER, fragmentSource);
+        explicit ShaderProgram(std::string_view vsFilename, std::string_view fsFilename) {
+            Shader vs = Shader::FromFile(GL_VERTEX_SHADER, vsFilename);
+            Shader fs = Shader::FromFile(GL_FRAGMENT_SHADER, fsFilename);
             
             program.Generate();
 
@@ -56,6 +56,8 @@ namespace framework {
                 msg += strInfoLog;
                 delete[] strInfoLog;
 
+                std::cerr << msg << std::endl;
+                
                 throw std::runtime_error(msg);
             }
         }

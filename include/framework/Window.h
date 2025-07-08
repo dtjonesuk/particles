@@ -8,6 +8,13 @@
 #include <stdexcept>
 #include <map>
 
+#ifdef WIN32
+// Font support
+#include <shlobj_core.h>
+#include <filesystem>
+
+#endif
+
 #include "glad/glad.h"
 #include "GLFW/glfw3.h"
 #include "glm/glm.hpp"
@@ -16,12 +23,7 @@
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
 
-#ifdef WIN32
-// Font support
-#include <shlobj_core.h>
-#include <filesystem>
 
-#endif
 
 
 namespace framework {

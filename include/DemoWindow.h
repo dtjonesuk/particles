@@ -7,10 +7,6 @@
 
 #include <numbers>
 
-#include <stb_image.h>
-
-#include <glad/glad.h>
-
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
@@ -23,30 +19,28 @@
 #include "framework/StaticMesh.h"
 #include "framework/Camera.h"
 #include "framework/Light.h"
-#include "framework/Material.h"
-#include "framework/MatrixBuffer.h"
+#include "framework/MaterialUniform.h"
+#include "framework/MatrixUniform.h"
+#include "framework/Wireframe.h"
+#include "framework/InstancedMesh.h"
+#include "framework/Scene.h"
+
+#include <glad/glad.h>
+
+#include <stb_image.h>
 
 using namespace framework;
 
 #define PI std::numbers::pi_v<float>
-#define LIGHT_BINDING_POINT 1
-#define MATERIAL_BINDING_POINT 2
-#define MATRICES_BINDING_POINT 3
+
 
 class DemoWindow : public Window {
 public:
     DemoWindow() : Window(1920, 1080, "Particle System") {}
 
 protected:
-    std::unique_ptr<StaticMesh> cube;
-    std::unique_ptr<StaticMesh> sphere;
-    std::unique_ptr<ShaderProgram> solid_shader;
-    std::unique_ptr<ShaderProgram> unlit_shader;
-    std::unique_ptr<PerspectiveCamera> camera;
-
-    Buffer<GL_UNIFORM_BUFFER> light_ubo;
-    Buffer<GL_UNIFORM_BUFFER> material_ubo;
-    Buffer<GL_UNIFORM_BUFFER> matrices_ubo;
+    std::shared_ptr<Scene> scene;
+    std::shared_ptr<SceneEntity> sphere, cube, wireframe;
 
     double previous = 0;
     bool bOrbiting = false;
@@ -64,6 +58,7 @@ protected:
         glm::vec2 translation{0.f};
         glm::vec3 scale{1.0f, 1.0f, 1.0f};
         glm::vec3 colour{0.0f, 0.5f, 1.0f};
+        float specularAmount{8.0f};
 
         // Light properties
         float ambient_light_intensity = 0.2f;
@@ -81,66 +76,27 @@ protected:
 
         Texture texture = Texture::CreateFromFile("assets/textures/opengl-logo.png");
 
+        scene = std::make_shared<Scene>();
+        scene->MakePerspectiveCamera({0.f, 2.f, 5.f}, {0, 0, 0}, {0, 1, 0}, {1920, 1080});
+
+
         // Geometry
-        sphere = std::make_unique<StaticMesh>(CreateSphere(32, 16));
-        cube = std::make_unique<StaticMesh>(CreateCube());
+        Transform transform;
 
-        //mesh->SetTexture(std::move(texture));
+        auto sphere_geo = std::make_shared<StaticMesh>(StaticMesh::CreateSphere(32, 16));
+        sphere_geo->SetMaterial(scene->GetMaterial("emerald"));
+        sphere = scene->AddEntity<SceneEntity>(scene, transform, sphere_geo);
 
-        camera = std::make_unique<PerspectiveCamera>(
-                PerspectiveCamera({0.f, 2.f, 5.f}, {0, 0, 0}, {0, 1, 0}, {1920, 1080}));
+        auto cube_geo = std::make_shared<StaticMesh>(StaticMesh::CreateCube());
+        cube_geo->SetMaterial(scene->GetMaterial("bronze"));
+        transform.Translate({2.5, 0, 0});
+        cube = scene->AddEntity<SceneEntity>(scene, transform, cube_geo);
 
-        // Compile shaders and create shader program
-        unlit_shader = std::make_unique<ShaderProgram>(ShaderProgram(loadShaderSource("assets/shaders/unlit.vert.glsl"),
-                                                                     loadShaderSource(
-                                                                             "assets/shaders/unlit.frag.glsl")));
-
-        solid_shader = std::make_unique<ShaderProgram>(
-                ShaderProgram(loadShaderSource("assets/shaders/lambert.vert.glsl"),
-                              loadShaderSource("assets/shaders/lambert.frag.glsl")));
-
-
-        GLint size;
-
-        glGetIntegerv(GL_MAX_UNIFORM_BUFFER_BINDINGS, &size);
-        std::cout << "Uniform buffer bindings: " << size << std::endl;
-
-        light_ubo.Generate();
-        light_ubo.Bind();
-        size = solid_shader->GetUniformBlockSize("Light");
-        std::cout << "Light uniform size: " << size << "(" << sizeof(Light) << ")" << std::endl;
-        light_ubo.BufferData(size, nullptr, GL_DYNAMIC_DRAW);
-        light_ubo.BindToBindingPoint(LIGHT_BINDING_POINT);
-        light_ubo.Unbind();
-
-        material_ubo.Generate();
-        material_ubo.Bind();
-        size = solid_shader->GetUniformBlockSize("Material");
-        std::cout << "Material uniform size: " << size << "(" << sizeof(Material) << ")" << std::endl;
-        material_ubo.BufferData(size, nullptr, GL_DYNAMIC_DRAW);
-        material_ubo.BindToBindingPoint(MATERIAL_BINDING_POINT);
-        material_ubo.Unbind();
-
-        matrices_ubo.Generate();
-        matrices_ubo.Bind();
-        size = solid_shader->GetUniformBlockSize("Matrices");
-        std::cout << "Matrices uniform size: " << size << "(" << sizeof(MatrixBuffer) << ")" << std::endl;
-        matrices_ubo.BufferData(size, nullptr, GL_DYNAMIC_DRAW);
-        matrices_ubo.BindToBindingPoint(MATRICES_BINDING_POINT);
-        matrices_ubo.Unbind();
-
-        solid_shader->UniformBlockBinding("Material", MATERIAL_BINDING_POINT);
-        solid_shader->UniformBlockBinding("Light", LIGHT_BINDING_POINT);
-        solid_shader->UniformBlockBinding("Matrices", MATRICES_BINDING_POINT);
-        
-        // Enable z-buffer
-        glEnable(GL_DEPTH_TEST);
-        glDepthFunc(GL_LESS);
-
-        glm::vec2 range;
-        glGetFloatv(GL_ALIASED_LINE_WIDTH_RANGE, &range[0]);
-        std::cout << "Line width range: " << range[0] << " - " << range[1] << std::endl;
-        glDisable(GL_LINE_SMOOTH);
+        auto wireframe_geo = std::make_shared<WireframeMesh>(WireframeMesh::CreateCube());
+        wireframe_geo->SetMaterial(scene->GetMaterial("white"));
+        transform.SetLocation({0, 0, 0});
+        transform.SetScale({2, 2, 2});
+        wireframe = scene->AddEntity<SceneEntity>(scene, transform, wireframe_geo);
     }
 
     void OnGui() override {
@@ -159,6 +115,7 @@ protected:
         ImGui::SliderFloat3("Scale##Object", &Gui.scale[0], 0.0f, 5.0f);
         ImGui::SliderFloat3("Rotation##Object", &Gui.rotationEuler[0], 0.0f, 360.0f);
         ImGui::ColorEdit3("Colour##Object", &Gui.colour[0]);
+        ImGui::SliderFloat("Specular", &Gui.specularAmount, 0.0f, 64.0f);
 
         ImGui::Spacing();
         ImGui::SeparatorText("Camera");
@@ -177,63 +134,23 @@ protected:
         // Calculate fractional part of time
         float percent = (cos((float) time.currentTime / 5 * 2 * PI) + 1.f) / 2.f;
 
-        // Set shaders and uniform values
-        solid_shader->Use();
 
-        {
-            Light light(Gui.light_position, Gui.light_colour, Gui.ambient_light_intensity);
-            light_ubo.Bind();
-            light_ubo.BindToBindingPoint(LIGHT_BINDING_POINT);
-            light_ubo.BufferSubData(0, sizeof(Light), &light);
-            light_ubo.Unbind();
-        }
+        // change sphere to a scene entity
+        sphere->SetLocalTransform({{Gui.translation.x, Gui.translation.y, 0.f},
+                                   glm::vec3(glm::radians(Gui.rotationEuler.x),
+                                             glm::radians(Gui.rotationEuler.y),
+                                             glm::radians(Gui.rotationEuler.z)),
+                                   Gui.scale});
 
-        {
-            Material material(Gui.colour, 1.f);
-            material_ubo.Bind();
-            material_ubo.BindToBindingPoint(MATERIAL_BINDING_POINT);
-            material_ubo.BufferSubData(0, sizeof(Material), &material);
-            material_ubo.Unbind();
-        }
-
-        // Model transform
-        sphere->SetTransform({{Gui.translation.x, Gui.translation.y, 0.f},
-                              glm::vec3(glm::radians(Gui.rotationEuler.x), 
-                                        glm::radians(Gui.rotationEuler.y),
-                                        glm::radians(Gui.rotationEuler.z)),
-                              Gui.scale
-                             });
-
-        MatrixBuffer matrices;
-        matrices.model = sphere->GetTransform().Matrix();
-
-        // View transform
         int width, height;
         glfwGetFramebufferSize(_window, &width, &height);
-        glViewport(0, 0, width, height);
-
-        camera->SetViewport({width, height});
-        camera->SetFov(Gui.fov);
-
-        Gui.camera_position = camera->GetPosition();
-
-        matrices.view = camera->GetViewMatrix();
-        matrices.projection = camera->GetProjectionMatrix();
-        matrices.normal = glm::transpose(glm::inverse(matrices.model));
-
-        matrices_ubo.Bind();
-        matrices_ubo.BindToBindingPoint(MATRICES_BINDING_POINT);
-        matrices_ubo.BufferSubData(0, sizeof(MatrixBuffer), &matrices);
-        matrices_ubo.Unbind();
-        
-
-        // Clear screen
-        glClearColor(.1f, .1f, .1f, 1.f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        scene->GetCamera()->SetViewport({width, height});
+        scene->GetCamera()->SetFov(Gui.fov);
+        Gui.camera_position = scene->GetCamera()->GetPosition();
 
         // Draw geometry
-//        cube->Render();
-        sphere->Render();
+
+        scene->DrawScene();
 
 //        unlit_shader->Use();
 //        unlit_shader->SetUniform("u_MVP", mvp);
@@ -241,7 +158,14 @@ protected:
 //        glDisable(GL_LINE_SMOOTH);
 //        glLineWidth(2.0f);
 //        sphere->RenderWireframe();
-        solid_shader->Unuse();
+//        solid_shader->Unuse();
+//
+//        unlit_shader->Use();
+//        unlit_shader->SetUniform("u_MVP", matrices.projection * matrices.view * matrices.model);
+//        unlit_shader->SetUniform("u_Color", glm::vec3{1.f, 1.f, 1.f});
+//        wireframe->Render();
+//
+//        unlit_shader->Unuse();
 
     }
 
@@ -303,11 +227,11 @@ protected:
         double deltaY = ypos - prevY;
 
         if (bOrbiting) {
-            camera->Orbit(-deltaX / MOUSE_SENSITIVITY, -deltaY / MOUSE_SENSITIVITY);
+            scene->GetCamera()->Orbit(-deltaX / MOUSE_SENSITIVITY, -deltaY / MOUSE_SENSITIVITY);
         } else if (bPanning) {
-            camera->Pan({-deltaX / MOUSE_SENSITIVITY, deltaY / MOUSE_SENSITIVITY});
+            scene->GetCamera()->Pan({-deltaX / MOUSE_SENSITIVITY, deltaY / MOUSE_SENSITIVITY});
         } else if (bZooming) {
-            camera->Zoom(deltaY / MOUSE_SENSITIVITY);
+            scene->GetCamera()->Zoom(deltaY / MOUSE_SENSITIVITY);
         }
 
         prevX = xpos;
@@ -316,7 +240,7 @@ protected:
 
     void OnMouseScroll(double xoffset, double yoffset) override {
         if (!(bOrbiting || bPanning || bZooming)) {
-            camera->Zoom(yoffset / SCROLL_SENSITIVITY);
+            scene->GetCamera()->Zoom(yoffset / SCROLL_SENSITIVITY);
         }
     }
 };

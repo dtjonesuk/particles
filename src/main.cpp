@@ -4,12 +4,7 @@
 
 #define ENABLE_IMGUI
 
-#include "glad/glad.h"
-#include <GLFW/glfw3.h>
-#include <format>
-
 #include "glutils.h"
-#include "framework/Window.h"
 #include "DemoWindow.h"
 
 

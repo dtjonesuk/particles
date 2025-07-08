@@ -22,15 +22,9 @@ void printOpenGLVersionInfo() {
     std::cout << "GLSL Version : " << glslVersion << std::endl;
 }
 
-std::string loadShaderSource(const std::filesystem::path &path) {
-    std::ifstream file{path};
-    std::stringstream ss;
-    ss << file.rdbuf();
-    
-    return ss.str();
-}
-
+// Show >= low severity
 int s_DebugLogLevel = 4;
+
 #define LOG_ERROR(x,y) std::cout << std::format(x,y) << std::endl;
 
 static void OpenGLLogMessage(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)

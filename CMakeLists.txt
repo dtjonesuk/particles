@@ -60,9 +60,15 @@ add_executable(particles src/main.cpp extern/glad/src/glad.c
         include/framework/Geometry.h
         include/framework/Transform.h
         include/framework/Light.h
-        include/framework/Material.h
+        include/framework/MaterialUniform.h
         include/framework/Buffer.h
-        include/framework/MatrixBuffer.h
+        include/framework/MatrixUniform.h
+        include/framework/Scene.h
+        include/framework/Material.h
+        include/framework/Entity.h
+        include/framework/Uniforms.h
+        include/framework/Particle.h
+        include/framework/InstancedMesh.h
 )
 
 target_link_libraries(particles PRIVATE glm::glm)

@@ -8,6 +8,8 @@
 #include <string>
 #include <iostream>
 #include <cassert>
+#include <fstream>
+#include <sstream>
 
 #include "glad/glad.h"
 #include "GLFW/glfw3.h"
@@ -42,6 +44,14 @@ namespace framework {
             return *this;
         }
 
+        static Shader FromFile(GLenum shaderType, std::string_view path) {
+            std::ifstream file{path.data()};
+            std::stringstream ss;
+            ss << file.rdbuf();
+
+            return Shader(shaderType, ss.str());
+        }
+
         void Compile() {
             assert(sourceCode.data());
             const GLchar *text = sourceCode.data();
@@ -56,14 +66,16 @@ namespace framework {
             if (params != GL_TRUE) {
                 compiled = false;
                 std::string msg("Shader Compilation Error: ");
-                
+
                 GLint infoLogLength;
                 glGetShaderiv(shader.Handle(), GL_INFO_LOG_LENGTH, &infoLogLength);
                 char *strInfoLog = new char[infoLogLength + 1];
-                glGetShaderInfoLog(shader.Handle(), infoLogLength,nullptr, strInfoLog);
+                glGetShaderInfoLog(shader.Handle(), infoLogLength, nullptr, strInfoLog);
                 msg += strInfoLog;
                 delete[] strInfoLog;
-                
+
+                std::cerr << msg << std::endl;
+
                 throw std::runtime_error(msg);
             }
         }

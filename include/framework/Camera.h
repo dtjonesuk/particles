@@ -27,6 +27,9 @@ public:
 
     const glm::mat4 GetProjectionMatrix() const { return CalcProjection(); }
 
+    float GetFov() const { return _fov; }
+
+    void SetFov(float fov) { _fov = fov; }
     /// Transformation controls
 
     // Orient camera towards location in 'at'
@@ -56,12 +59,15 @@ public:
         _position += (_target - _position) * value;
     }
 
+    virtual ~Camera() = default;
+    
 protected:
     glm::vec3 _position{};
     glm::ivec2 _viewport{};
     glm::vec3 _target{};
     glm::vec3 _up{};
     glm::vec2 _clippingPlanes {0.1f, 100.f};
+    float _fov = 45.0f;
 
     Camera() = default;
 
@@ -71,16 +77,15 @@ protected:
            up,
            glm::ivec2 viewport
     ) : _position(location), _target(lookAt), _up(up), _viewport(viewport) {}
+    
 
-    virtual ~Camera() = default;
-
-    virtual glm::mat4 CalcView() const {
+    [[nodiscard]] virtual glm::mat4 CalcView() const {
         return glm::lookAt(_position,
                            _target,
                            _up);
     }
 
-    virtual glm::mat4 CalcProjection() const = 0;
+    [[nodiscard]] virtual glm::mat4 CalcProjection() const = 0;
 
 };
 
@@ -93,14 +98,11 @@ public:
                                                                                                         viewport) {
     }
 
-    float GetFov() const { return _fov; }
 
-    void SetFov(float fov) { _fov = fov; }
 
 protected:
-    float _fov = 45.0f;
 
-    glm::mat4 CalcProjection() const override {
+    [[nodiscard]] glm::mat4 CalcProjection() const override {
         return glm::perspective(glm::radians(_fov), (float) _viewport.x / (float) _viewport.y, 
                                 _clippingPlanes.s, /* near */ 
                                 _clippingPlanes.t /* far */);
