@@ -17,6 +17,12 @@ public:
     Transform(glm::vec3 location, glm::quat rotation = glm::identity<glm::quat>(), glm::vec3 scale = glm::vec3{1}) :
             _location(location), _rotation(rotation), _scale(scale) {}
 
+    void Reset() {
+        _location = {};
+        _rotation = glm::identity<glm::quat>();
+        _scale = glm::vec3{1};
+    }
+
     glm::vec3 GetLocation() const { return _location; }
 
     glm::quat GetRotation() const { return _rotation; }
@@ -30,7 +36,7 @@ public:
     void SetRotation(glm::quat rotation) {
         _rotation = rotation;
     }
-    
+
     void SetRotationEuler(glm::vec3 rotationEuler) {
         _rotation = glm::quat(rotationEuler);
     }
@@ -39,28 +45,28 @@ public:
         _scale = scale;
     }
 
-    Transform& Translate(glm::vec3 relative) {
+    Transform &Translate(glm::vec3 relative) {
         _location += relative;
-        return  *this;
+        return *this;
     }
-    
-    Transform& Rotate(glm::quat relative) {
+
+    Transform &Rotate(glm::quat relative) {
         _rotation *= relative;
         return *this;
     }
-    
-    Transform& Scale(glm::vec3 relative) {
+
+    Transform &Scale(glm::vec3 relative) {
         _scale *= relative;
         return *this;
     }
-    
+
     /// Return 4x4 matrix of transforms in order scale, rotation, translation
     /// this could be cached for performance?
     glm::mat4 GetMatrix() const {
         auto mat = glm::translate(glm::identity<glm::mat4>(), _location) *
-         glm::mat4_cast(_rotation) * 
-         glm::scale(glm::identity<glm::mat4>(), _scale);
-        
+                   glm::mat4_cast(_rotation) *
+                   glm::scale(glm::identity<glm::mat4>(), _scale);
+
         return mat;
     }
 

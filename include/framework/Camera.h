@@ -48,6 +48,7 @@ public:
     }
 
     // Orbit the camera about the target in the Y-axis
+    /// TODO: Fix the trackball rotation bug!
     void Orbit(float theta, float phi) {
         _position = glm::rotate(glm::identity<glm::mat4>(), theta, _up) * glm::vec4(_position, 1.0f);
         auto right = glm::cross(_target - glm::vec3(_position), _up);

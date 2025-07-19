@@ -38,7 +38,7 @@ namespace framework {
         }
 
     protected:
-        void RenderGeometry() override {
+        void RenderGeometry() const override {
             this->_vao.Bind();
             if (this->_indices.empty()) {
                 glDrawArrays(this->_drawMode, 0, this->_vertices.size());

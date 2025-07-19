@@ -12,17 +12,15 @@
 #include <glm/gtc/quaternion.hpp>
 #include "glm/gtc/type_ptr.hpp"
 
-#include "glutils.h"
+//#include "glutils.h"
 #include "framework/Window.h"
 #include "framework/Buffer.h"
 #include "framework/ShaderProgram.h"
-#include "framework/StaticMesh.h"
 #include "framework/Camera.h"
 #include "framework/Light.h"
-#include "framework/MaterialUniform.h"
-#include "framework/MatrixUniform.h"
-#include "framework/Wireframe.h"
+#include "framework/StaticMesh.h"
 #include "framework/InstancedMesh.h"
+#include "framework/Wireframe.h"
 #include "framework/Scene.h"
 
 #include <glad/glad.h>
@@ -80,21 +78,40 @@ protected:
         scene->MakePerspectiveCamera({0.f, 2.f, 5.f}, {0, 0, 0}, {0, 1, 0}, {1920, 1080});
 
 
+        // Unlit materials
+        auto white_unlit = std::make_shared<UnlitMaterial>("white", glm::vec3{1.0, 1.0, 1.0f});
+
+        // Standard materials
+        auto emerald_solid = std::make_shared<SolidMaterial>("emerald",
+                                                             glm::vec3{0.0215, 0.1745, 0.0215},
+                                                             glm::vec3{0.07568, 0.61424, 0.07568},
+                                                             glm::vec3{0.633, 0.727811, 0.633},
+                                                             0.6f * 128);
+
+        auto bronze_solid = std::make_shared<SolidMaterial>("pearl",
+                                                                 glm::vec3{0.25, 0.20725, 0.20725},
+                                                                 glm::vec3{1, 0.829, 0.829},
+                                                                 glm::vec3{0.96648, 0.296648, 0.296648},
+                                                                 0.088f * 128);
         // Geometry
         Transform transform;
 
+        // Sphere
         auto sphere_geo = std::make_shared<StaticMesh>(StaticMesh::CreateSphere(32, 16));
-        sphere_geo->SetMaterial(scene->GetMaterial("emerald"));
+        sphere_geo->SetMaterial(emerald_solid);
         sphere = scene->AddEntity<SceneEntity>(scene, transform, sphere_geo);
 
+        // Cube
         auto cube_geo = std::make_shared<StaticMesh>(StaticMesh::CreateCube());
-        cube_geo->SetMaterial(scene->GetMaterial("bronze"));
-        transform.Translate({2.5, 0, 0});
+        cube_geo->SetMaterial(bronze_solid);
+        transform.Translate({3.0, 0, 0});
+        transform.Rotate(glm::vec3(glm::radians(30.0f), glm::radians(30.0f), glm::radians(30.0f)));
         cube = scene->AddEntity<SceneEntity>(scene, transform, cube_geo);
 
+        // Wireframe Box
         auto wireframe_geo = std::make_shared<WireframeMesh>(WireframeMesh::CreateCube());
-        wireframe_geo->SetMaterial(scene->GetMaterial("white"));
-        transform.SetLocation({0, 0, 0});
+        wireframe_geo->SetMaterial(white_unlit);
+        transform.Reset();
         transform.SetScale({2, 2, 2});
         wireframe = scene->AddEntity<SceneEntity>(scene, transform, wireframe_geo);
     }
@@ -131,11 +148,8 @@ protected:
     }
 
     void OnUpdate(const TimeInfo &time) override {
-        // Calculate fractional part of time
-        float percent = (cos((float) time.currentTime / 5 * 2 * PI) + 1.f) / 2.f;
-
-
-        // change sphere to a scene entity
+        // Sync scene entities with the GUI
+        
         sphere->SetLocalTransform({{Gui.translation.x, Gui.translation.y, 0.f},
                                    glm::vec3(glm::radians(Gui.rotationEuler.x),
                                              glm::radians(Gui.rotationEuler.y),
@@ -148,32 +162,18 @@ protected:
         scene->GetCamera()->SetFov(Gui.fov);
         Gui.camera_position = scene->GetCamera()->GetPosition();
 
-        // Draw geometry
-
+        scene->GetLight().position = Gui.light_position;
+        
+        // Draw scene geometry
         scene->DrawScene();
-
-//        unlit_shader->Use();
-//        unlit_shader->SetUniform("u_MVP", mvp);
-//        unlit_shader->SetUniform("u_Color", glm::vec3{0.f, 0.f, 0.f});
-//        glDisable(GL_LINE_SMOOTH);
-//        glLineWidth(2.0f);
-//        sphere->RenderWireframe();
-//        solid_shader->Unuse();
-//
-//        unlit_shader->Use();
-//        unlit_shader->SetUniform("u_MVP", matrices.projection * matrices.view * matrices.model);
-//        unlit_shader->SetUniform("u_Color", glm::vec3{1.f, 1.f, 1.f});
-//        wireframe->Render();
-//
-//        unlit_shader->Unuse();
-
+        
     }
 
     void OnClose() override {
         std::cout << "Close window" << std::endl;
     }
 
-    double prevX, prevY;
+    double prevX{}, prevY{};
 
     void OnMouseClick(int button, int action, int mods) override {
         if (action == GLFW_PRESS && (mods & GLFW_MOD_ALT)) {

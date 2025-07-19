@@ -69,6 +69,12 @@ add_executable(particles src/main.cpp extern/glad/src/glad.c
         include/framework/Uniforms.h
         include/framework/Particle.h
         include/framework/InstancedMesh.h
+        include/framework/GlNamedResource.h
+        src/framework/Shader.cpp
+        include/framework/Framework.h
+        include/framework/SolidMaterialRenderer.h
+        include/framework/WireframeRenderer.h
+        include/framework/Renderer.h
 )
 
 target_link_libraries(particles PRIVATE glm::glm)

@@ -9,6 +9,8 @@
 #include <utility>
 #include <stdexcept>
 
+#include <glad/glad.h>
+
 namespace framework {
 
     enum class GlResourceType {
@@ -26,35 +28,28 @@ namespace framework {
 
         static void Generate(THandle *handle) {
             static_assert(false, "Resource generate method not implemented!");
-            throw std::runtime_error("Resource generate method not implemented!");
         }
 
         static void Bind(THandle handle) {
             static_assert(false, "Resource bind method not implemented!");
-            throw std::runtime_error("Resource bind method not implemented!");
         }
 
         static void Bind(GLuint target, THandle handle) {
             static_assert(false, "Resource bind method not implemented!");
-            throw std::runtime_error("Resource bind method not implemented!");
         }
 
         static void Unbind(GLuint target, THandle handle) {
             static_assert(false, "Resource unbind method not implemented!");
-            throw std::runtime_error("Resource unbind method not implemented!");
         }
 
         static void Unbind(THandle handle) {
             static_assert(false, "Resource unbind method not implemented!");
-            throw std::runtime_error("Resource unbind method not implemented!");
         }
 
         static void Delete(THandle handle) {
             static_assert(false, "Resource delete method not implemented!");
-            throw std::runtime_error("Resource delete method not implemented!");
         }
     };
-
 
     template<GlResourceType TResourceType, typename HandleOps = GlResourceOps<TResourceType>>
     class GlResource {

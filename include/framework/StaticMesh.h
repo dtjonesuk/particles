@@ -17,9 +17,9 @@ namespace framework {
 
         static StaticMesh CreateFromIndices(const std::vector<VertexUV> &points, const std::vector<uint16_t> &indices) {
             StaticMesh mesh;
+            mesh.CreateVertexArray();
             mesh.CreateVertexBuffer(points);
             mesh.CreateIndexBuffer(indices);
-            mesh.CreateVertexArray();
             mesh.AddAttrib(3, GL_FLOAT, offsetof(VertexUV, position));
             mesh.AddAttrib(3, GL_FLOAT, offsetof(VertexUV, normal));
             mesh.AddAttrib(2, GL_FLOAT, offsetof(VertexUV, uv));
@@ -150,7 +150,7 @@ namespace framework {
         }
 
     protected:
-        void RenderGeometry() override {
+        void RenderGeometry() const override {
             this->_vao.Bind();
             if (this->_indices.empty()) {
                 glDrawArrays(this->_drawMode, 0, this->_vertices.size());

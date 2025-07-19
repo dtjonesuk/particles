@@ -76,7 +76,7 @@ namespace framework {
         }
 
     protected:
-        void RenderGeometry() override {
+        void RenderGeometry() const override {
             this->_vao.Bind();
 
             if (this->_indices.empty()) {
